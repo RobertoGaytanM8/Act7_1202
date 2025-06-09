@@ -9,18 +9,25 @@ class AddNamePage extends StatefulWidget {
 }
 
 class _AddNamePageState extends State<AddNamePage> {
-  final TextEditingController _nameController = TextEditingController();
-  final CollectionReference peopleCollection =
-      FirebaseFirestore.instance.collection('people');
+  final TextEditingController _fieldNameController = TextEditingController();
+  final TextEditingController _fieldValueController = TextEditingController();
 
-  Future<void> _addName() async {
-    final name = _nameController.text.trim();
-    if (name.isNotEmpty) {
-      await peopleCollection.add({'name': name});
+  final CollectionReference perrosCollection =
+      FirebaseFirestore.instance.collection('Perros');
+
+  Future<void> _addField() async {
+    final field = _fieldNameController.text.trim();
+    final value = _fieldValueController.text.trim();
+
+    if (field.isNotEmpty && value.isNotEmpty) {
+      await perrosCollection.add({
+        field: value,
+        'createdAt': FieldValue.serverTimestamp(), // ← Agregado para orden
+      });
       Navigator.of(context).pop();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, ingresa un nombre')),
+        const SnackBar(content: Text('Ingresa un nombre de campo y su valor')),
       );
     }
   }
@@ -29,20 +36,25 @@ class _AddNamePageState extends State<AddNamePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Agregar Nombre'),
-        backgroundColor: const Color.fromARGB(255, 255, 133, 133),
+        title: const Text('Agregar Campo'),
+        backgroundColor: const Color.fromARGB(255, 101, 255, 234),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Nombre'),
+              controller: _fieldNameController,
+              decoration: const InputDecoration(labelText: 'Nombre del Campo'),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _fieldValueController,
+              decoration: const InputDecoration(labelText: 'Valor del Campo'),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _addName,
+              onPressed: _addField,
               child: const Text('Guardar'),
             ),
           ],

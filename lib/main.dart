@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'pages/add_name_page.dart';
 import 'pages/edit_name_page.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -19,7 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Crud Gaytan Roberto',
+      title: 'CRUD Perros',
       debugShowCheckedModeBanner: false,
       home: const HomePage(),
     );
@@ -34,19 +32,19 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final CollectionReference peopleCollection =
-      FirebaseFirestore.instance.collection('people');
+  final CollectionReference perrosCollection =
+      FirebaseFirestore.instance.collection('Perros');
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Crud Gaytan Roberto'),
+        title: const Text('CRUD Perros'),
         centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 15, 173, 107),
+        backgroundColor: const Color.fromARGB(255, 101, 255, 234),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: peopleCollection.snapshots(),
+        stream: perrosCollection.orderBy('createdAt', descending: false).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(child: Text('Error al cargar los datos'));
@@ -56,23 +54,23 @@ class _HomePageState extends State<HomePage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final people = snapshot.data!.docs;
+          final perros = snapshot.data!.docs;
 
           return ListView.builder(
-            itemCount: people.length,
+            itemCount: perros.length,
             itemBuilder: (context, index) {
-              final person = people[index];
-              final data = person.data() as Map<String, dynamic>;
+              final perro = perros[index];
+              final data = perro.data() as Map<String, dynamic>;
 
               return Dismissible(
-                key: Key(person.id),
+                key: Key(perro.id),
                 direction: DismissDirection.endToStart,
                 confirmDismiss: (direction) async {
                   return await showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
                       title: const Text('Confirmar eliminación'),
-                      content: const Text('¿Estás seguro de eliminar este nombre?'),
+                      content: const Text('¿Eliminar este elemento?'),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(false),
@@ -87,9 +85,9 @@ class _HomePageState extends State<HomePage> {
                   );
                 },
                 onDismissed: (direction) async {
-                  await peopleCollection.doc(person.id).delete();
+                  await perrosCollection.doc(perro.id).delete();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Nombre eliminado')),
+                    const SnackBar(content: Text('Elemento eliminado')),
                   );
                 },
                 background: Container(
@@ -101,18 +99,20 @@ class _HomePageState extends State<HomePage> {
                 child: ListTile(
                   title: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: data.entries.map((entry) {
-                      return Text('${entry.key}: ${entry.value}',
-                          style: const TextStyle(fontSize: 16));
-                    }).toList(),
+                    children: data.entries
+                        .where((entry) => entry.key != 'createdAt') // ← Oculta el timestamp
+                        .map((entry) {
+                          return Text('${entry.key}: ${entry.value}',
+                              style: const TextStyle(fontSize: 16));
+                        }).toList(),
                   ),
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => EditNamePage(
-                          docId: person.id,
-                          currentName: data['name'] ?? '',
+                          docId: perro.id,
+                          data: data,
                         ),
                       ),
                     );
