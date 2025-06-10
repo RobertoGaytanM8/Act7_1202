@@ -1,65 +1,122 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:myapp/services/firebase_services.dart';
 
-class AddNamePage extends StatefulWidget {
-  const AddNamePage({super.key});
+class AddPerroPage extends StatefulWidget {
+  const AddPerroPage({super.key});
 
   @override
-  State<AddNamePage> createState() => _AddNamePageState();
+  State<AddPerroPage> createState() => _AddPerroPageState();
 }
 
-class _AddNamePageState extends State<AddNamePage> {
-  final TextEditingController _fieldNameController = TextEditingController();
-  final TextEditingController _fieldValueController = TextEditingController();
-
-  final CollectionReference perrosCollection =
-      FirebaseFirestore.instance.collection('Perros');
-
-  Future<void> _addField() async {
-    final field = _fieldNameController.text.trim();
-    final value = _fieldValueController.text.trim();
-
-    if (field.isNotEmpty && value.isNotEmpty) {
-      await perrosCollection.add({
-        field: value,
-        'createdAt': FieldValue.serverTimestamp(), // ← Agregado para orden
-      });
-      Navigator.of(context).pop();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ingresa un nombre de campo y su valor')),
-      );
-    }
-  }
+class _AddPerroPageState extends State<AddPerroPage> {
+  TextEditingController codigoController = TextEditingController();
+  TextEditingController razaController = TextEditingController();
+  TextEditingController edadController = TextEditingController();
+  TextEditingController comportamientoController = TextEditingController();
+  TextEditingController vacunasController = TextEditingController();
+  TextEditingController sexoController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Agregar Campo'),
-        backgroundColor: const Color.fromARGB(255, 101, 255, 234),
+        title: const Text("Agregar Perro"),
+        centerTitle: true,
+        backgroundColor: const Color.fromARGB(255, 152, 255, 226),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
-              controller: _fieldNameController,
-              decoration: const InputDecoration(labelText: 'Nombre del Campo'),
+              controller: codigoController,
+              decoration: const InputDecoration(
+                hintText: 'Ingrese el código del perro',
+                labelText: 'Código',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 10),
+
             TextField(
-              controller: _fieldValueController,
-              decoration: const InputDecoration(labelText: 'Valor del Campo'),
+              controller: razaController,
+              decoration: const InputDecoration(
+                hintText: 'Ingrese la raza del perro',
+                labelText: 'Raza',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            TextField(
+              controller: edadController,
+              decoration: const InputDecoration(
+                hintText: 'Ingrese la edad del perro',
+                labelText: 'Edad',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            TextField(
+              controller: comportamientoController,
+              decoration: const InputDecoration(
+                hintText: 'Ingrese el comportamiento del perro',
+                labelText: 'Comportamiento',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            TextField(
+              controller: vacunasController,
+              decoration: const InputDecoration(
+                hintText: 'Ingrese las vacunas del perro',
+                labelText: 'Vacunas',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            TextField(
+              controller: sexoController,
+              decoration: const InputDecoration(
+                hintText: 'Ingrese el sexo del perro',
+                labelText: 'Sexo',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 20),
+
             ElevatedButton(
-              onPressed: _addField,
-              child: const Text('Guardar'),
+              onPressed: () async {
+                await addPerro(
+                  codigoController.text,
+                  razaController.text,
+                  edadController.text,
+                  comportamientoController.text,
+                  vacunasController.text,
+                  sexoController.text,
+                ).then((_) {
+                  Navigator.pop(context);
+                });
+              },
+              child: const Text("Guardar"),
             ),
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    codigoController.dispose();
+    razaController.dispose();
+    edadController.dispose();
+    comportamientoController.dispose();
+    vacunasController.dispose();
+    sexoController.dispose();
+    super.dispose();
   }
 }
